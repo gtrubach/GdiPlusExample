@@ -4,7 +4,58 @@
 #include "stdafx.h"
 #include "GdiPlusExample.h"
 
+using namespace Gdiplus;
+
 #define MAX_LOADSTRING 100
+
+#define NAVY_BLUE RGB(0, 0, 128)
+#define WHITE RGB(255, 255, 255)
+#define YELLOW RGB(255, 255, 0)
+
+struct Params
+{
+	std::wstring m_text;
+	CHOOSEFONT m_cf;
+	LOGFONT m_lf;
+	CHOOSECOLOR m_ccCircuit;
+	CHOOSECOLOR m_ccFill;
+	CHOOSECOLOR m_ccBackground;
+	Gdiplus::PointF m_pStart;
+	double m_dRotAngle;
+	float m_fScale;
+	bool m_bSmoothing;
+	bool m_bNonRectRg;
+
+	COLORREF m_crCustColors[16];
+
+	Params() :m_text(L"Text"),m_pStart(0,0), m_dRotAngle(0), m_fScale(1), m_bSmoothing(true), m_bNonRectRg(false)
+	{
+		ZeroMemory(&m_lf, sizeof(m_lf));
+		m_lf.lfHeight = -64;//-MulDiv(PointSize, GetDeviceCaps(hDC, LOGPIXELSY), 72);
+		wcscpy_s(m_lf.lfFaceName, L"Arial");
+
+		ZeroMemory(&m_cf, sizeof(m_cf));
+		m_cf.lStructSize = sizeof(CHOOSEFONT);
+		m_cf.lpLogFont = &m_lf;
+		m_cf.Flags = CF_INITTOLOGFONTSTRUCT | CF_SCREENFONTS;
+
+		ZeroMemory(&m_ccCircuit, sizeof(m_ccCircuit));
+		ZeroMemory(&m_ccFill, sizeof(m_ccFill));
+		ZeroMemory(&m_ccBackground, sizeof(m_ccBackground));
+		m_ccCircuit.lStructSize = m_ccFill.lStructSize = m_ccBackground.lStructSize = sizeof(CHOOSECOLOR);
+		m_ccCircuit.Flags = m_ccFill.Flags = m_ccBackground.Flags = CC_RGBINIT | CC_FULLOPEN;
+		m_ccCircuit.lpCustColors = m_ccFill.lpCustColors = m_ccBackground.lpCustColors = m_crCustColors;
+
+		m_ccCircuit.rgbResult = NAVY_BLUE;
+		m_ccFill.rgbResult = WHITE;
+		m_ccBackground.rgbResult = YELLOW;
+	}
+
+	void SetHWNDOwner(HWND hWnd)
+	{
+		m_cf.hwndOwner = m_ccCircuit.hwndOwner = m_ccFill.hwndOwner = m_ccBackground.hwndOwner = hWnd;
+	}
+} params;
 
 // Global Variables:
 HINSTANCE hInst;                                // current instance
@@ -16,43 +67,55 @@ ATOM                MyRegisterClass(HINSTANCE hInstance);
 BOOL                InitInstance(HINSTANCE, int);
 LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
+INT_PTR CALLBACK    TextParams(HWND, UINT, WPARAM, LPARAM);
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
-                     _In_opt_ HINSTANCE hPrevInstance,
-                     _In_ LPWSTR    lpCmdLine,
-                     _In_ int       nCmdShow)
+	_In_opt_ HINSTANCE hPrevInstance,
+	_In_ LPWSTR    lpCmdLine,
+	_In_ int       nCmdShow)
 {
-    UNREFERENCED_PARAMETER(hPrevInstance);
-    UNREFERENCED_PARAMETER(lpCmdLine);
+	UNREFERENCED_PARAMETER(hPrevInstance);
+	UNREFERENCED_PARAMETER(lpCmdLine);
 
-    // TODO: Place code here.
+	// TODO: Place code here.
 
-    // Initialize global strings
-    LoadStringW(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
-    LoadStringW(hInstance, IDC_GDIPLUSEXAMPLE, szWindowClass, MAX_LOADSTRING);
-    MyRegisterClass(hInstance);
+	// Initialize global strings
+	LoadStringW(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
+	LoadStringW(hInstance, IDC_GDIPLUSEXAMPLE, szWindowClass, MAX_LOADSTRING);
+	MyRegisterClass(hInstance);
 
-    // Perform application initialization:
-    if (!InitInstance (hInstance, nCmdShow))
-    {
-        return FALSE;
-    }
+	GdiplusStartupInput gdiplusStartupInput;
+	ULONG_PTR           gdiplusToken;
+	Status st = GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
 
-    HACCEL hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_GDIPLUSEXAMPLE));
+	// Perform application initialization:
+	if (!InitInstance(hInstance, nCmdShow))
+	{
+		return FALSE;
+	}
 
-    MSG msg;
+	if (st != Ok)
+	{
+		return FALSE;
+	}
 
-    // Main message loop:
-    while (GetMessage(&msg, nullptr, 0, 0))
-    {
-        if (!TranslateAccelerator(msg.hwnd, hAccelTable, &msg))
-        {
-            TranslateMessage(&msg);
-            DispatchMessage(&msg);
-        }
-    }
+	HACCEL hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_GDIPLUSEXAMPLE));
 
-    return (int) msg.wParam;
+	MSG msg;
+
+	// Main message loop:
+	while (GetMessage(&msg, nullptr, 0, 0))
+	{
+		if (!TranslateAccelerator(msg.hwnd, hAccelTable, &msg))
+		{
+			TranslateMessage(&msg);
+			DispatchMessage(&msg);
+		}
+	}
+
+	GdiplusShutdown(gdiplusToken);
+
+	return (int)msg.wParam;
 }
 
 
@@ -96,7 +159,7 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
 BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 {
    hInst = hInstance; // Store instance handle in our global variable
-
+   
    HWND hWnd = CreateWindowW(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW,
       CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, nullptr, nullptr, hInstance, nullptr);
 
@@ -104,6 +167,8 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    {
       return FALSE;
    }
+
+   params.SetHWNDOwner(hWnd);
 
    ShowWindow(hWnd, nCmdShow);
    UpdateWindow(hWnd);
@@ -147,9 +212,20 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             PAINTSTRUCT ps;
             HDC hdc = BeginPaint(hWnd, &ps);
             // TODO: Add any drawing code that uses hdc here...
-            EndPaint(hWnd, &ps);
+			{
+				Graphics graphics(hdc);
+				HFONT fnIndirect = CreateFontIndirect(params.m_cf.lpLogFont);
+				Font font(hdc, fnIndirect);
+				LinearGradientBrush brush(Rect(0, 0, 100, 100), Color::Red, Color::Yellow, LinearGradientModeHorizontal);
+				graphics.DrawString(params.m_text.c_str(), params.m_text.length(), &font, params.m_pStart, &brush);
+			}
+			EndPaint(hWnd, &ps);
         }
         break;
+	case WM_LBUTTONDOWN:
+		DialogBox(hInst, MAKEINTRESOURCE(IDD_DIALOG_TEXT_PARAMS), hWnd, TextParams);
+		InvalidateRect(hWnd, NULL, TRUE);
+		break;
     case WM_DESTROY:
         PostQuitMessage(0);
         break;
@@ -177,4 +253,46 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
         break;
     }
     return (INT_PTR)FALSE;
+}
+
+// Message handler for text params box.
+INT_PTR CALLBACK TextParams(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+{
+	UNREFERENCED_PARAMETER(lParam);
+	switch (message)
+	{
+	case WM_INITDIALOG:
+		SetDlgItemText(hDlg, IDC_EDIT_TEXT, params.m_text.c_str());
+		return (INT_PTR)TRUE;
+
+	case WM_COMMAND:
+		switch (LOWORD(wParam))
+		{
+		case IDC_BUTTON_FONT:
+			ChooseFont(&params.m_cf);
+			break;
+
+		case IDC_BUTTON_COLOR_CIRCUIT:
+			ChooseColor(&params.m_ccCircuit);
+			break;
+
+		case IDC_BUTTON_COLOR_FILL:
+			ChooseColor(&params.m_ccFill);
+			break;
+
+		case IDC_BUTTON_COLOR_BKG:
+			ChooseColor(&params.m_ccBackground);
+			break;
+
+		case IDOK:
+			wchar_t textChar[1024];
+			GetDlgItemText(hDlg, IDC_EDIT_TEXT, textChar, 1024);
+			params.m_text = textChar;
+		case IDCANCEL:
+			EndDialog(hDlg, LOWORD(wParam));
+			return (INT_PTR)TRUE;
+		}
+		break;
+	}
+	return (INT_PTR)FALSE;
 }
