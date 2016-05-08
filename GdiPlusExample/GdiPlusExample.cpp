@@ -12,6 +12,8 @@ using namespace Gdiplus;
 #define WHITE RGB(255, 255, 255)
 #define YELLOW RGB(255, 255, 0)
 
+#define MAX_BUFFER_SIZE 1024
+
 struct Params
 {
 	std::wstring m_text;
@@ -286,6 +288,8 @@ INT_PTR CALLBACK TextParams(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 	{
 	case WM_INITDIALOG:
 		SetDlgItemText(hDlg, IDC_EDIT_TEXT, params.m_text.c_str());
+		SetDlgItemInt(hDlg, IDC_EDIT_POINT_X, (UINT)params.m_pStart.X, FALSE);
+		SetDlgItemInt(hDlg, IDC_EDIT_POINT_Y, (UINT)params.m_pStart.Y, FALSE);
 		return (INT_PTR)TRUE;
 
 	case WM_COMMAND:
@@ -308,9 +312,21 @@ INT_PTR CALLBACK TextParams(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 			break;
 
 		case IDOK:
-			wchar_t textChar[1024];
-			GetDlgItemText(hDlg, IDC_EDIT_TEXT, textChar, 1024);
-			params.m_text = textChar;
+			{
+				wchar_t textChar[MAX_BUFFER_SIZE];
+				GetDlgItemText(hDlg, IDC_EDIT_TEXT, textChar, MAX_BUFFER_SIZE);
+				params.m_text = textChar;
+
+				BOOL bX, bY;
+				REAL x = (REAL)GetDlgItemInt(hDlg, IDC_EDIT_POINT_X, &bX, FALSE);
+				REAL y = (REAL)GetDlgItemInt(hDlg, IDC_EDIT_POINT_Y, &bY, FALSE);
+				if (!bX)
+					x = params.m_pStart.X;
+				if (!bY)
+					y = params.m_pStart.Y;
+				params.m_pStart.X = x;
+				params.m_pStart.Y = y;
+			}
 		case IDCANCEL:
 			EndDialog(hDlg, LOWORD(wParam));
 			return (INT_PTR)TRUE;
