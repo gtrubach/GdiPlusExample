@@ -215,7 +215,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			{
 				Graphics graphics(hdc);
 
-				
+				Color color;
+				color.SetFromCOLORREF(params.m_ccBackground.rgbResult);
+				graphics.Clear(color);
 
 				HFONT fnIndirect = CreateFontIndirect(params.m_cf.lpLogFont);
 				Font font(hdc, fnIndirect);
@@ -228,7 +230,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				font.GetFamily(&fnFamily);
 				path.AddString(params.m_text.c_str(), params.m_text.length(), &fnFamily, font.GetStyle(), font.GetSize(), params.m_pStart, &strformat);
 
-				Color color;
 				color.SetFromCOLORREF(params.m_ccCircuit.rgbResult);
 				Pen pen(color, 6);
 				pen.SetLineJoin(LineJoinRound);
@@ -246,6 +247,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		DialogBox(hInst, MAKEINTRESOURCE(IDD_DIALOG_TEXT_PARAMS), hWnd, TextParams);
 		InvalidateRect(hWnd, NULL, TRUE);
 		break;
+	case WM_ERASEBKGND:
+		return TRUE;
     case WM_DESTROY:
         PostQuitMessage(0);
         break;
