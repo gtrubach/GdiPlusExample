@@ -214,10 +214,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             // TODO: Add any drawing code that uses hdc here...
 			{
 				Graphics graphics(hdc);
+
+				
+
 				HFONT fnIndirect = CreateFontIndirect(params.m_cf.lpLogFont);
 				Font font(hdc, fnIndirect);
-				/*LinearGradientBrush brush(Rect(0, 0, 100, 100), Color::Red, Color::Yellow, LinearGradientModeHorizontal);
-				graphics.DrawString(params.m_text.c_str(), params.m_text.length(), &font, params.m_pStart, &brush);*/
 				/*graphics.SetSmoothingMode(SmoothingModeAntiAlias);
 				graphics.SetInterpolationMode(InterpolationModeHighQualityBicubic);*/
 
@@ -235,7 +236,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				graphics.DrawPath(&pen, &path);
 
 				color.SetFromCOLORREF(params.m_ccFill.rgbResult);
-				SolidBrush brush(Color(255,255,0));
+				SolidBrush brush(color);
 				graphics.FillPath(&brush, &path);
 			}
 			EndPaint(hWnd, &ps);
