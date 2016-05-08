@@ -216,8 +216,27 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				Graphics graphics(hdc);
 				HFONT fnIndirect = CreateFontIndirect(params.m_cf.lpLogFont);
 				Font font(hdc, fnIndirect);
-				LinearGradientBrush brush(Rect(0, 0, 100, 100), Color::Red, Color::Yellow, LinearGradientModeHorizontal);
-				graphics.DrawString(params.m_text.c_str(), params.m_text.length(), &font, params.m_pStart, &brush);
+				/*LinearGradientBrush brush(Rect(0, 0, 100, 100), Color::Red, Color::Yellow, LinearGradientModeHorizontal);
+				graphics.DrawString(params.m_text.c_str(), params.m_text.length(), &font, params.m_pStart, &brush);*/
+				/*graphics.SetSmoothingMode(SmoothingModeAntiAlias);
+				graphics.SetInterpolationMode(InterpolationModeHighQualityBicubic);*/
+
+				StringFormat strformat;
+				GraphicsPath path;
+				FontFamily fnFamily;
+				font.GetFamily(&fnFamily);
+				path.AddString(params.m_text.c_str(), params.m_text.length(), &fnFamily, font.GetStyle(), font.GetSize(), params.m_pStart, &strformat);
+
+				Color color;
+				color.SetFromCOLORREF(params.m_ccCircuit.rgbResult);
+				Pen pen(color, 6);
+				pen.SetLineJoin(LineJoinRound);
+
+				graphics.DrawPath(&pen, &path);
+
+				color.SetFromCOLORREF(params.m_ccFill.rgbResult);
+				SolidBrush brush(Color(255,255,0));
+				graphics.FillPath(&brush, &path);
 			}
 			EndPaint(hWnd, &ps);
         }
