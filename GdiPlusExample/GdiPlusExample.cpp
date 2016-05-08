@@ -23,14 +23,14 @@ struct Params
 	CHOOSECOLOR m_ccFill;
 	CHOOSECOLOR m_ccBackground;
 	Gdiplus::PointF m_pStart;
-	double m_dRotAngle;
+	float m_fRotAngle;
 	float m_fScale;
-	bool m_bSmoothing;
+	bool m_bAntialiasing;
 	bool m_bNonRectRg;
 
 	COLORREF m_crCustColors[16];
 
-	Params() :m_text(L"Text"),m_pStart(0,0), m_dRotAngle(0), m_fScale(1), m_bSmoothing(true), m_bNonRectRg(false)
+	Params() :m_text(L"Text"), m_pStart(0.0f, 0.0f), m_fRotAngle(0.0f), m_fScale(1.0f), m_bAntialiasing(true), m_bNonRectRg(false)
 	{
 		ZeroMemory(&m_lf, sizeof(m_lf));
 		m_lf.lfHeight = -64;//-MulDiv(PointSize, GetDeviceCaps(hDC, LOGPIXELSY), 72);
@@ -88,7 +88,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
 	GdiplusStartupInput gdiplusStartupInput;
 	ULONG_PTR           gdiplusToken;
-	Status st = GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
+	Status status = GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
 
 	// Perform application initialization:
 	if (!InitInstance(hInstance, nCmdShow))
@@ -96,7 +96,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		return FALSE;
 	}
 
-	if (st != Ok)
+	if (status != Ok)
 	{
 		return FALSE;
 	}
@@ -225,6 +225,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				Font font(hdc, fnIndirect);
 				/*graphics.SetSmoothingMode(SmoothingModeAntiAlias);
 				graphics.SetInterpolationMode(InterpolationModeHighQualityBicubic);*/
+				
+				//graphics.RotateTransform(params.m_fRotAngle);
 
 				StringFormat strformat;
 				GraphicsPath path;
@@ -235,7 +237,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				color.SetFromCOLORREF(params.m_ccCircuit.rgbResult);
 				Pen pen(color, 6);
 				pen.SetLineJoin(LineJoinRound);
-
+				
 				graphics.DrawPath(&pen, &path);
 
 				color.SetFromCOLORREF(params.m_ccFill.rgbResult);
@@ -290,6 +292,7 @@ INT_PTR CALLBACK TextParams(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 		SetDlgItemText(hDlg, IDC_EDIT_TEXT, params.m_text.c_str());
 		SetDlgItemInt(hDlg, IDC_EDIT_POINT_X, (UINT)params.m_pStart.X, FALSE);
 		SetDlgItemInt(hDlg, IDC_EDIT_POINT_Y, (UINT)params.m_pStart.Y, FALSE);
+		SetDlgItemInt(hDlg, IDC_EDIT_ROTATE, (UINT)params.m_fRotAngle, FALSE);
 		return (INT_PTR)TRUE;
 
 	case WM_COMMAND:
@@ -326,6 +329,15 @@ INT_PTR CALLBACK TextParams(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 					y = params.m_pStart.Y;
 				params.m_pStart.X = x;
 				params.m_pStart.Y = y;
+
+				GetDlgItemText(hDlg, IDC_EDIT_ROTATE, textChar, MAX_BUFFER_SIZE);
+				try {
+					params.m_fRotAngle = std::stof(textChar);
+				}
+				catch (std::invalid_argument)
+				{
+					params.m_fRotAngle = 0;
+				}
 			}
 		case IDCANCEL:
 			EndDialog(hDlg, LOWORD(wParam));
