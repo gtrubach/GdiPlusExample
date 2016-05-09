@@ -289,11 +289,19 @@ INT_PTR CALLBACK TextParams(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 	switch (message)
 	{
 	case WM_INITDIALOG:
-		SetDlgItemText(hDlg, IDC_EDIT_TEXT, params.m_text.c_str());
-		SetDlgItemInt(hDlg, IDC_EDIT_POINT_X, (UINT)params.m_pStart.X, FALSE);
-		SetDlgItemInt(hDlg, IDC_EDIT_POINT_Y, (UINT)params.m_pStart.Y, FALSE);
-		SetDlgItemInt(hDlg, IDC_EDIT_ROTATE, (INT)params.m_fRotAngle, TRUE);
-		SetDlgItemInt(hDlg, IDC_EDIT_SCALE, (UINT)params.m_fScale, FALSE);
+		{
+			SetDlgItemText(hDlg, IDC_EDIT_TEXT, params.m_text.c_str());
+			SetDlgItemInt(hDlg, IDC_EDIT_POINT_X, (UINT)params.m_pStart.X, FALSE);
+			SetDlgItemInt(hDlg, IDC_EDIT_POINT_Y, (UINT)params.m_pStart.Y, FALSE);
+
+			std::wstringstream wss;
+			wss << params.m_fRotAngle;
+			SetDlgItemText(hDlg, IDC_EDIT_ROTATE, wss.str().c_str());
+
+			wss.str(L"");
+			wss << params.m_fScale;
+			SetDlgItemText(hDlg, IDC_EDIT_SCALE, wss.str().c_str());
+		}
 		return (INT_PTR)TRUE;
 
 	case WM_COMMAND:
