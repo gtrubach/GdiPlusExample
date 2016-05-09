@@ -225,7 +225,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				Font font(hdc, fnIndirect);
 				/*graphics.SetSmoothingMode(SmoothingModeAntiAlias);
 				graphics.SetInterpolationMode(InterpolationModeHighQualityBicubic);*/
-				
+				graphics.ScaleTransform(params.m_fScale, params.m_fScale);
 				//graphics.RotateTransform(params.m_fRotAngle);
 
 				StringFormat strformat;
@@ -292,7 +292,8 @@ INT_PTR CALLBACK TextParams(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 		SetDlgItemText(hDlg, IDC_EDIT_TEXT, params.m_text.c_str());
 		SetDlgItemInt(hDlg, IDC_EDIT_POINT_X, (UINT)params.m_pStart.X, FALSE);
 		SetDlgItemInt(hDlg, IDC_EDIT_POINT_Y, (UINT)params.m_pStart.Y, FALSE);
-		SetDlgItemInt(hDlg, IDC_EDIT_ROTATE, (UINT)params.m_fRotAngle, FALSE);
+		SetDlgItemInt(hDlg, IDC_EDIT_ROTATE, (INT)params.m_fRotAngle, TRUE);
+		SetDlgItemInt(hDlg, IDC_EDIT_SCALE, (UINT)params.m_fScale, FALSE);
 		return (INT_PTR)TRUE;
 
 	case WM_COMMAND:
@@ -331,12 +332,23 @@ INT_PTR CALLBACK TextParams(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 				params.m_pStart.Y = y;
 
 				GetDlgItemText(hDlg, IDC_EDIT_ROTATE, textChar, MAX_BUFFER_SIZE);
-				try {
+				try
+				{
 					params.m_fRotAngle = std::stof(textChar);
 				}
 				catch (std::invalid_argument)
 				{
 					params.m_fRotAngle = 0;
+				}
+
+				GetDlgItemText(hDlg, IDC_EDIT_SCALE, textChar, MAX_BUFFER_SIZE);
+				try
+				{
+					params.m_fScale = std::stof(textChar);
+				}
+				catch (std::invalid_argument)
+				{
+					params.m_fScale = 0;
 				}
 			}
 		case IDCANCEL:
