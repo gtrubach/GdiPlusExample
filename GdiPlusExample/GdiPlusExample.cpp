@@ -223,8 +223,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 				HFONT fnIndirect = CreateFontIndirect(params.m_cf.lpLogFont);
 				Font font(hdc, fnIndirect);
-				/*graphics.SetSmoothingMode(SmoothingModeAntiAlias);
-				graphics.SetInterpolationMode(InterpolationModeHighQualityBicubic);*/
+				//graphics.SetSmoothingMode(SmoothingModeHighQuality);
+				
 				graphics.ScaleTransform(params.m_fScale, params.m_fScale);
 				//graphics.RotateTransform(params.m_fRotAngle);
 
