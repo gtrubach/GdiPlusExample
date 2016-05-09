@@ -25,8 +25,8 @@ struct Params
 	Gdiplus::PointF m_pStart;
 	float m_fRotAngle;
 	float m_fScale;
-	bool m_bAntialiasing;
-	bool m_bNonRectRg;
+	BOOL m_bAntialiasing;
+	BOOL m_bNonRectRg;
 
 	COLORREF m_crCustColors[16];
 
@@ -223,8 +223,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 				HFONT fnIndirect = CreateFontIndirect(params.m_cf.lpLogFont);
 				Font font(hdc, fnIndirect);
-				//graphics.SetSmoothingMode(SmoothingModeHighQuality);
-				
+				if (params.m_bAntialiasing)
+					graphics.SetSmoothingMode(SmoothingModeHighQuality);
+
 				graphics.ScaleTransform(params.m_fScale, params.m_fScale);
 				//graphics.RotateTransform(params.m_fRotAngle);
 
@@ -237,7 +238,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				color.SetFromCOLORREF(params.m_ccCircuit.rgbResult);
 				Pen pen(color, 6);
 				pen.SetLineJoin(LineJoinRound);
-				
+
 				graphics.DrawPath(&pen, &path);
 
 				color.SetFromCOLORREF(params.m_ccFill.rgbResult);
@@ -301,6 +302,9 @@ INT_PTR CALLBACK TextParams(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 			wss.str(L"");
 			wss << params.m_fScale;
 			SetDlgItemText(hDlg, IDC_EDIT_SCALE, wss.str().c_str());
+
+			CheckDlgButton(hDlg, IDC_CHECK_ANTIALIASING, params.m_bAntialiasing);
+			CheckDlgButton(hDlg, IDC_CHECK_NONSTANDARDRG, params.m_bNonRectRg);
 		}
 		return (INT_PTR)TRUE;
 
@@ -358,6 +362,9 @@ INT_PTR CALLBACK TextParams(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 				{
 					params.m_fScale = 0;
 				}
+
+				params.m_bAntialiasing = IsDlgButtonChecked(hDlg, IDC_CHECK_ANTIALIASING);
+				params.m_bNonRectRg = IsDlgButtonChecked(hDlg, IDC_CHECK_NONSTANDARDRG);
 			}
 		case IDCANCEL:
 			EndDialog(hDlg, LOWORD(wParam));
