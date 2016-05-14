@@ -382,10 +382,12 @@ INT_PTR CALLBACK TextParams(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 				try
 				{
 					params.m_fScale = std::stof(textChar);
+					if (params.m_fScale <= 0)
+						params.m_fScale = 1.0f;
 				}
 				catch (std::invalid_argument)
 				{
-					params.m_fScale = 0;
+					params.m_fScale = 1.0f;
 				}
 
 				params.m_bAntialiasing = IsDlgButtonChecked(hDlg, IDC_CHECK_ANTIALIASING);
