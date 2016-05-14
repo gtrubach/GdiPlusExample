@@ -63,6 +63,7 @@ struct Params
 HINSTANCE hInst;                                // current instance
 WCHAR szTitle[MAX_LOADSTRING];                  // The title bar text
 WCHAR szWindowClass[MAX_LOADSTRING];            // the main window class name
+HRGN hRgn;							            // Region of text
 
 // Forward declarations of functions included in this code module:
 ATOM                MyRegisterClass(HINSTANCE hInstance);
@@ -227,10 +228,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 					graphics.SetSmoothingMode(SmoothingModeHighQuality);
 
 				graphics.ScaleTransform(params.m_fScale, params.m_fScale);
+
 				RectF rect;
 				graphics.MeasureString(params.m_text.c_str(), params.m_text.length(), &font, params.m_pStart, &rect);
-				graphics.TranslateTransform(rect.Width / 2, rect.Height / 2);
+				graphics.TranslateTransform(params.m_pStart.X + rect.Width / 2, params.m_pStart.Y + rect.Height / 2);
 				graphics.RotateTransform(params.m_fRotAngle);
+
 				StringFormat strformat;
 				GraphicsPath path;
 				FontFamily fnFamily;
@@ -248,7 +251,24 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				graphics.FillPath(&brush, &path);
 
 				Region region(&path);
-				//graphics.FillRegion(&SolidBrush(Color(0, 0, 0)), &region);
+
+				RECT rc;
+				GetWindowRect(hWnd, &rc);
+
+				POINT pt;pt.x = rc.left;pt.y = rc.top;
+				ScreenToClient(hWnd, &pt);
+				region.Translate(-pt.x / params.m_fScale, -pt.y / params.m_fScale);
+				
+				hRgn = region.GetHRGN(&graphics);
+				OffsetRect(&rc, -rc.left, -rc.top);
+
+				HRGN hRgnWnd = CreateRectRgn(rc.left, rc.top, rc.right, rc.bottom);
+
+				CombineRgn(hRgn, hRgn, hRgnWnd, RGN_XOR);
+
+				params.m_bNonRectRg
+					? SetWindowRgn(hWnd, hRgn, TRUE)
+					: SetWindowRgn(hWnd, NULL, TRUE);
 			}
 			EndPaint(hWnd, &ps);
         }
