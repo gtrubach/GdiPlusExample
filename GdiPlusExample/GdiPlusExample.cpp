@@ -241,7 +241,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				path.AddString(params.m_text.c_str(), params.m_text.length(), &fnFamily, font.GetStyle(), font.GetSize(), PointF(-rect.Width / 2, -rect.Height / 2), strformat.GenericTypographic());
 
 				color.SetFromCOLORREF(params.m_ccCircuit.rgbResult);
-				Pen pen(color, 5);
+				Pen pen(color, 3);
 				pen.SetLineJoin(LineJoinRound);
 
 				graphics.DrawPath(&pen, &path);
@@ -255,10 +255,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				RECT rc;
 				GetWindowRect(hWnd, &rc);
 
-				POINT pt;pt.x = rc.left;pt.y = rc.top;
+				POINT pt;
+				pt.x = rc.left;
+				pt.y = rc.top;
 				ScreenToClient(hWnd, &pt);
 				region.Translate(-pt.x / params.m_fScale, -pt.y / params.m_fScale);
-				
+
 				hRgn = region.GetHRGN(&graphics);
 				OffsetRect(&rc, -rc.left, -rc.top);
 
