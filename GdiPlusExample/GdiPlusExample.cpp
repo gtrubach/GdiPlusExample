@@ -227,16 +227,18 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 					graphics.SetSmoothingMode(SmoothingModeHighQuality);
 
 				graphics.ScaleTransform(params.m_fScale, params.m_fScale);
-				//graphics.RotateTransform(params.m_fRotAngle);
-
+				RectF rect;
+				graphics.MeasureString(params.m_text.c_str(), params.m_text.length(), &font, params.m_pStart, &rect);
+				graphics.TranslateTransform(rect.Width / 2, rect.Height / 2);
+				graphics.RotateTransform(params.m_fRotAngle);
 				StringFormat strformat;
 				GraphicsPath path;
 				FontFamily fnFamily;
 				font.GetFamily(&fnFamily);
-				path.AddString(params.m_text.c_str(), params.m_text.length(), &fnFamily, font.GetStyle(), font.GetSize(), params.m_pStart, &strformat);
+				path.AddString(params.m_text.c_str(), params.m_text.length(), &fnFamily, font.GetStyle(), font.GetSize(), PointF(-rect.Width / 2, -rect.Height / 2), strformat.GenericTypographic());
 
 				color.SetFromCOLORREF(params.m_ccCircuit.rgbResult);
-				Pen pen(color, 6);
+				Pen pen(color, 5);
 				pen.SetLineJoin(LineJoinRound);
 
 				graphics.DrawPath(&pen, &path);
@@ -244,6 +246,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				color.SetFromCOLORREF(params.m_ccFill.rgbResult);
 				SolidBrush brush(color);
 				graphics.FillPath(&brush, &path);
+
+				Region region(&path);
+				//graphics.FillRegion(&SolidBrush(Color(0, 0, 0)), &region);
 			}
 			EndPaint(hWnd, &ps);
         }
