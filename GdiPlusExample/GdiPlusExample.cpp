@@ -226,13 +226,15 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				Font font(hdc, fnIndirect);
 				if (params.m_bAntialiasing)
 					graphics.SetSmoothingMode(SmoothingModeHighQuality);
-
-				graphics.ScaleTransform(params.m_fScale, params.m_fScale);
-
+				
+				Matrix matrix;
+				
 				RectF rect;
 				graphics.MeasureString(params.m_text.c_str(), params.m_text.length(), &font, params.m_pStart, &rect);
-				graphics.TranslateTransform(params.m_pStart.X + rect.Width / 2, params.m_pStart.Y + rect.Height / 2);
-				graphics.RotateTransform(params.m_fRotAngle);
+				matrix.Translate(params.m_pStart.X + rect.Width / 2, params.m_pStart.Y + rect.Height / 2);
+				matrix.Rotate(params.m_fRotAngle);
+				matrix.Scale(params.m_fScale, params.m_fScale, MatrixOrderAppend);
+				graphics.MultiplyTransform(&matrix);
 
 				StringFormat strformat;
 				GraphicsPath path;
@@ -249,7 +251,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				color.SetFromCOLORREF(params.m_ccFill.rgbResult);
 				SolidBrush brush(color);
 				graphics.FillPath(&brush, &path);
-
+				graphics.ResetTransform();
 				Region region(&path);
 
 				RECT rc;
@@ -259,7 +261,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				pt.x = rc.left;
 				pt.y = rc.top;
 				ScreenToClient(hWnd, &pt);
-				region.Translate(-pt.x / params.m_fScale, -pt.y / params.m_fScale);
+
+				matrix.Translate((REAL)-pt.x, (REAL)-pt.y, MatrixOrderAppend);
+				region.Transform(&matrix);
 
 				hRgn = region.GetHRGN(&graphics);
 				OffsetRect(&rc, -rc.left, -rc.top);
