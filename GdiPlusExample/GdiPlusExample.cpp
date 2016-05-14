@@ -251,8 +251,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				color.SetFromCOLORREF(params.m_ccFill.rgbResult);
 				SolidBrush brush(color);
 				graphics.FillPath(&brush, &path);
-				graphics.ResetTransform();
+							
 				Region region(&path);
+				hRgn = region.GetHRGN(&graphics);
+
+				graphics.ResetTransform();
 
 				RECT rc;
 				GetWindowRect(hWnd, &rc);
@@ -264,24 +267,33 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 				matrix.Translate((REAL)-pt.x, (REAL)-pt.y, MatrixOrderAppend);
 				region.Transform(&matrix);
-
-				hRgn = region.GetHRGN(&graphics);
+				
+				HRGN hRgnFr = region.GetHRGN(&graphics);
 				OffsetRect(&rc, -rc.left, -rc.top);
 
 				HRGN hRgnWnd = CreateRectRgn(rc.left, rc.top, rc.right, rc.bottom);
 
 				CombineRgn(hRgn, hRgn, hRgnWnd, RGN_XOR);
-
+				CombineRgn(hRgnFr, hRgnFr, hRgnWnd, RGN_XOR);
+				
 				params.m_bNonRectRg
-					? SetWindowRgn(hWnd, hRgn, TRUE)
+					? SetWindowRgn(hWnd, hRgnFr, TRUE)
 					: SetWindowRgn(hWnd, NULL, TRUE);
 			}
 			EndPaint(hWnd, &ps);
         }
         break;
 	case WM_LBUTTONDOWN:
-		DialogBox(hInst, MAKEINTRESOURCE(IDD_DIALOG_TEXT_PARAMS), hWnd, TextParams);
-		InvalidateRect(hWnd, NULL, TRUE);
+		{
+			int xPos = GET_X_LPARAM(lParam);
+			int yPos = GET_Y_LPARAM(lParam);
+				
+			if (PtInRegion(hRgn, xPos, yPos))
+			{
+				DialogBox(hInst, MAKEINTRESOURCE(IDD_DIALOG_TEXT_PARAMS), hWnd, TextParams);
+				InvalidateRect(hWnd, NULL, TRUE);
+			}
+		}
 		break;
 	case WM_ERASEBKGND:
 		return TRUE;
