@@ -271,14 +271,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				HRGN hRgnFr = region.GetHRGN(&graphics);
 				OffsetRect(&rc, -rc.left, -rc.top);
 
-				HRGN hRgnWnd = CreateRectRgn(rc.left, rc.top, rc.right, rc.bottom);
+				/*HRGN hRgnWnd = CreateRectRgn(rc.left, rc.top, rc.right, rc.bottom);
 
 				CombineRgn(hRgn, hRgn, hRgnWnd, RGN_XOR);
-				CombineRgn(hRgnFr, hRgnFr, hRgnWnd, RGN_XOR);
-				
-				params.m_bNonRectRg
-					? SetWindowRgn(hWnd, hRgnFr, TRUE)
-					: SetWindowRgn(hWnd, NULL, TRUE);
+				CombineRgn(hRgnFr, hRgnFr, hRgnWnd, RGN_XOR);*/
+				SetWindowRgn(hWnd, params.m_bNonRectRg ? hRgnFr : NULL, TRUE);
 			}
 			EndPaint(hWnd, &ps);
         }
